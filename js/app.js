@@ -66,6 +66,12 @@
     let hours = loadData('hours') || DEFAULT_HOURS;
     let inquiries = loadData('inquiries') || [];
     let bookings = loadData('bookings') || [];
+    let contacts = (function () {
+        try {
+            var c = localStorage.getItem('biz_contacts');
+            return c ? JSON.parse(c) : { phones: [], emails: [] };
+        } catch (e) { return { phones: [], emails: [] }; }
+    })();
     let currentRating = 5;
 
     function $(sel) { return document.querySelector(sel); }
@@ -116,9 +122,6 @@
         renderInquiries();
 
         $('#header-call-btn').addEventListener('click', function () { window.location.href = 'tel:' + settings.phone; });
-        $('#contact-call-btn').addEventListener('click', function () { window.location.href = 'tel:' + settings.phone; });
-        $('#contact-whatsapp-btn').addEventListener('click', function () { window.open('https://wa.me/' + settings.whatsapp.replace(/[^0-9]/g, ''), '_blank'); });
-        $('#contact-email-btn').addEventListener('click', function () { window.location.href = 'mailto:' + settings.email; });
 
         $('#download-rate').addEventListener('click', function (e) { e.preventDefault(); downloadRateList(); });
         $('#download-invoice').addEventListener('click', function (e) { e.preventDefault(); downloadInvoice(); });
@@ -196,10 +199,173 @@
     }
 
 
-    var tbody = document.getElementById('inquiries-table-body');
-var noInq = document.getElementById('no-inquiries');
+    function renderContactSection() {
+        var primaryPhone = contacts.phones.length > 0 ? contacts.phones[0].number : settings.phone;
+        var primaryEmail = contacts.emails.length > 0 ? contacts.emails[0].address : settings.email;
+        var primaryWhatsapp = settings.whatsapp;
+        for (var i = 0; i < contacts.phones.length; i++) {
+            if (contacts.phones[i].number.includes('whatsapp') || contacts.phones[i].label.toLowerCase().indexOf('whatsapp') >= 0) {
+                primaryWhatsapp = contacts.phones[i].number;
+            }
+        }
 
-if (!tbody || !noInq) return;function renderInquiries() {
+        // Contact section - Phone card
+        var phoneListEl = $('#contact-phone-list');
+        if (phoneListEl) {
+            if (contacts.phones.length > 0) {
+                phoneListEl.innerHTML = contacts.phones.map(function (p) {
+                    return '<div class="contact-info-row">' +
+                        '<a href="tel:' + p.number.replace(/[^0-9]/g, '') + '" class="contact-link">' + p.number + '</a>' +
+                        (p.label ? '<span class="contact-sub-label">(' + p.label + ')</span>' : '') +
+                        '<a href="tel:' + p.number.replace(/[^0-9]/g, '') + '" class="contact-link-btn">📞 Call</a>' +
+                        '</div>';
+                }).join('');
+            } else {
+                phoneListEl.innerHTML = '<a href="tel:' + settings.phone + '" class="contact-link">' + settings.phone + '</a>';
+            }
+        }
+
+        // Contact section - WhatsApp card
+        var waListEl = $('#contact-whatsapp-list');
+        if (waListEl) {
+            if (contacts.phones.length > 0) {
+                waListEl.innerHTML = contacts.phones.map(function (p) {
+                    var waLink = 'https://wa.me/' + p.number.replace(/[^0-9]/g, '');
+                    return '<div class="contact-info-row">' +
+                        '<a href="' + waLink + '" class="contact-link" target="_blank">' + p.number + '</a>' +
+                        (p.label ? '<span class="contact-sub-label">(' + p.label + ')</span>' : '') +
+                        '<a href="' + waLink + '" class="contact-link-btn" target="_blank">💬 Chat</a>' +
+                        '</div>';
+                }).join('');
+            } else {
+                var waLink = 'https://wa.me/' + primaryWhatsapp.replace(/[^0-9]/g, '');
+                waListEl.innerHTML = '<a href="' + waLink + '" class="contact-link" target="_blank">Chat: ' + primaryWhatsapp + '</a>';
+            }
+        }
+
+        // Contact section - Email card
+        var emailListEl = $('#contact-email-list');
+        if (emailListEl) {
+            if (contacts.emails.length > 0) {
+                emailListEl.innerHTML = contacts.emails.map(function (e) {
+                    return '<div class="contact-info-row">' +
+                        '<a href="mailto:' + e.address + '" class="contact-link">' + e.address + '</a>' +
+                        (e.label ? '<span class="contact-sub-label">(' + e.label + ')</span>' : '') +
+                        '<a href="mailto:' + e.address + '" class="contact-link-btn">✉️ Email</a>' +
+                        '</div>';
+                }).join('');
+            } else {
+                emailListEl.innerHTML = '<a href="mailto:' + settings.email + '" class="contact-link">' + settings.email + '</a>';
+            }
+        }
+
+        // Booking section - Phone
+        var bPhoneListEl = $('#booking-phone-list');
+        if (bPhoneListEl) {
+            if (contacts.phones.length > 0) {
+                bPhoneListEl.innerHTML = contacts.phones.map(function (p) {
+                    return '<div class="contact-info-row">' +
+                        '<a href="tel:' + p.number.replace(/[^0-9]/g, '') + '" class="contact-link">' + p.number + '</a>' +
+                        (p.label ? '<span class="contact-sub-label">(' + p.label + ')</span>' : '') +
+                        '</div>';
+                }).join('');
+            } else {
+                bPhoneListEl.innerHTML = '<a href="tel:' + settings.phone + '" class="contact-link">' + settings.phone + '</a>';
+            }
+        }
+
+        // Booking section - WhatsApp
+        var bWaListEl = $('#booking-whatsapp-list');
+        if (bWaListEl) {
+            if (contacts.phones.length > 0) {
+                bWaListEl.innerHTML = contacts.phones.map(function (p) {
+                    var waLink = 'https://wa.me/' + p.number.replace(/[^0-9]/g, '');
+                    return '<div class="contact-info-row">' +
+                        '<a href="' + waLink + '" class="contact-link" target="_blank">' + p.number + '</a>' +
+                        (p.label ? '<span class="contact-sub-label">(' + p.label + ')</span>' : '') +
+                        '</div>';
+                }).join('');
+            } else {
+                var bWaLink = 'https://wa.me/' + primaryWhatsapp.replace(/[^0-9]/g, '');
+                bWaListEl.innerHTML = '<a href="' + bWaLink + '" class="contact-link" target="_blank">Chat on WhatsApp</a>';
+            }
+        }
+
+        // Booking section - Email
+        var bEmailListEl = $('#booking-email-list');
+        if (bEmailListEl) {
+            if (contacts.emails.length > 0) {
+                bEmailListEl.innerHTML = contacts.emails.map(function (e) {
+                    return '<div class="contact-info-row">' +
+                        '<a href="mailto:' + e.address + '" class="contact-link">' + e.address + '</a>' +
+                        (e.label ? '<span class="contact-sub-label">(' + e.label + ')</span>' : '') +
+                        '</div>';
+                }).join('');
+            } else {
+                bEmailListEl.innerHTML = '<a href="mailto:' + settings.email + '" class="contact-link">' + settings.email + '</a>';
+            }
+        }
+
+        // Footer
+        var footerPhone = $('#footer-phone');
+        if (footerPhone) {
+            if (contacts.phones.length > 0) {
+                footerPhone.innerHTML = '<a href="tel:' + contacts.phones[0].number.replace(/[^0-9]/g, '') + '" class="contact-link">' + contacts.phones[0].number + '</a>';
+            } else {
+                footerPhone.innerHTML = '<a href="tel:' + settings.phone + '" class="contact-link">' + settings.phone + '</a>';
+            }
+        }
+        var footerEmail = $('#footer-email');
+        if (footerEmail) {
+            if (contacts.emails.length > 0) {
+                footerEmail.innerHTML = '<a href="mailto:' + contacts.emails[0].address + '" class="contact-link">' + contacts.emails[0].address + '</a>';
+            } else {
+                footerEmail.innerHTML = '<a href="mailto:' + settings.email + '" class="contact-link">' + settings.email + '</a>';
+            }
+        }
+
+        // Contact call button
+        $('#contact-call-btn').addEventListener('click', function () {
+            window.location.href = 'tel:' + (contacts.phones.length > 0 ? contacts.phones[0].number : settings.phone);
+        });
+
+        // Contact WhatsApp button
+        $('#contact-whatsapp-btn').addEventListener('click', function () {
+            var waNum = primaryWhatsapp;
+            window.open('https://wa.me/' + waNum.replace(/[^0-9]/g, ''), '_blank');
+        });
+
+        // Contact Email button
+        $('#contact-email-btn').addEventListener('click', function () {
+            window.location.href = 'mailto:' + (contacts.emails.length > 0 ? contacts.emails[0].address : settings.email);
+        });
+
+        // Add All Contacts section if multiple contacts
+        if (contacts.phones.length > 1 || contacts.emails.length > 1) {
+            var contactWrapper = document.querySelector('.contact-wrapper');
+            if (contactWrapper) {
+                var allDiv = document.createElement('div');
+                allDiv.className = 'contact-all';
+                allDiv.innerHTML = '<h3>📇 All Contact Information</h3>' +
+                    '<div class="contact-all-grid">' +
+                    contacts.phones.map(function (p) {
+                        return '<div class="contact-all-item"><span class="icon">📞</span><div class="details"><div class="label">' + (p.label || 'Phone') + '</div><div class="value"><a href="tel:' + p.number.replace(/[^0-9]/g, '') + '" class="contact-link">' + p.number + '</a></div></div></div>';
+                    }).join('') +
+                    contacts.emails.map(function (e) {
+                        return '<div class="contact-all-item"><span class="icon">✉️</span><div class="details"><div class="label">' + (e.label || 'Email') + '</div><div class="value"><a href="mailto:' + e.address + '" class="contact-link">' + e.address + '</a></div></div></div>';
+                    }).join('') +
+                    '</div>';
+                contactWrapper.appendChild(allDiv);
+            }
+        }
+    }
+
+    var tbody = document.getElementById('inquiries-table-body');
+    var noInq = document.getElementById('no-inquiries');
+
+    if (!tbody || !noInq) return;
+
+    function renderInquiries() {
         var tbody = $('#inquiries-table-body');
         var noInq = $('#no-inquiries');
         if (inquiries.length === 0) {
@@ -497,7 +663,8 @@ if (!tbody || !noInq) return;function renderInquiries() {
     });
 
     // Init
-    $('#footer-year').textContent = new Date().getFullYear();
-    applySettings();
+        $('#footer-year').textContent = new Date().getFullYear();
+        applySettings();
+        renderContactSection();
 
-})();
+    })();

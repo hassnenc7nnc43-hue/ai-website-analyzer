@@ -28,6 +28,7 @@
     let reviews = load('reviews', []);
     let hours = load('hours', DEFAULT_HOURS);
     let inquiries = load('inquiries', []);
+    let contacts = load('contacts', { phones: [], emails: [] });
     let isLoggedIn = sessionStorage.getItem('admin_logged') === '1';
     let currentRating = 5;
 
@@ -35,7 +36,7 @@
     function $$(s) { return document.querySelectorAll(s); }
 
     // Login
-    if (isLoggedIn) { showDashboard(); } else { showLogin(); }
+    if (isLoggedIn) { showDashboard(); refreshAll(); } else { showLogin(); }
 
     function showLogin() { $('#admin-login').style.display = ''; $('#admin-dashboard').style.display = 'none'; }
     function showDashboard() { $('#admin-login').style.display = 'none'; $('#admin-dashboard').style.display = ''; }
@@ -81,6 +82,7 @@
         renderReviewsTable();
         renderHours();
         renderInquiries();
+        renderContacts();
         updateStats();
     }
 
@@ -93,6 +95,14 @@
         $('#dash-email').textContent = settings.email;
         $('#dash-address').textContent = settings.address;
         $('#dash-whatsapp').textContent = settings.whatsapp;
+        renderContactStats();
+    }
+
+    function renderContactStats() {
+        var dashPhones = $('#dash-phones');
+        var dashEmails = $('#dash-emails');
+        if (dashPhones) dashPhones.textContent = contacts.phones.length + ' phone' + (contacts.phones.length !== 1 ? 's' : '');
+        if (dashEmails) dashEmails.textContent = contacts.emails.length + ' email' + (contacts.emails.length !== 1 ? 's' : '');
     }
 
     function populateSettings() {
@@ -121,7 +131,8 @@
         settings.emailjsTemplate = $('#admin-emailjs-template').value.trim();
         settings.emailjsKey = $('#admin-emailjs-key').value.trim();
         settings.formEmail = $('#admin-form-email').value.trim();
-        var pw = $('#admin-password-change').value;
+        var pwEl = $('#admin-password-change');
+        var pw = pwEl ? pwEl.value : '';
         if (pw) { settings.adminPassword = pw; }
         save('settings', settings);
         updateStats();
@@ -397,6 +408,114 @@
             renderInquiries();
             updateStats();
             showToast('Inquiry deleted');
+        }
+    };
+
+    // Contact Info Management
+    function renderContacts() {
+        renderPhoneList();
+        renderEmailList();
+    }
+
+    function renderPhoneList() {
+        var list = $('#phone-list');
+        if (!list) return;
+        if (contacts.phones.length === 0) {
+            list.innerHTML = '<p class="contact-empty">No phone numbers added yet.</p>';
+            return;
+        }
+        list.innerHTML = '<div class="contact-list">' + contacts.phones.map(function (p, i) {
+            return '<div class="contact-item">' +
+                '<div class="contact-item-info">' +
+                '<span class="contact-item-icon">📞</span>' +
+                '<div class="contact-item-details">' +
+                '<span class="contact-item-value">' + (p.number || '-') + '</span>' +
+                '<span class="contact-item-label">' + (p.label || 'Phone') + '</span>' +
+                '</div></div>' +
+                '<div class="contact-item-actions">' +
+                '<a href="tel:' + (p.number || '').replace(/[^0-9]/g, '') + '" class="admin-btn admin-btn-save" style="text-decoration:none;">Call</a>' +
+                '<button class="admin-btn admin-btn-delete" onclick="deletePhone(' + i + ')">Delete</button>' +
+                '</div></div>';
+        }).join('') + '</div>';
+    }
+
+    function renderEmailList() {
+        var list = $('#email-list');
+        if (!list) return;
+        if (contacts.emails.length === 0) {
+            list.innerHTML = '<p class="contact-empty">No email addresses added yet.</p>';
+            return;
+        }
+        list.innerHTML = '<div class="contact-list">' + contacts.emails.map(function (e, i) {
+            return '<div class="contact-item">' +
+                '<div class="contact-item-info">' +
+                '<span class="contact-item-icon">✉️</span>' +
+                '<div class="contact-item-details">' +
+                '<span class="contact-item-value">' + (e.address || '-') + '</span>' +
+                '<span class="contact-item-label">' + (e.label || 'Email') + '</span>' +
+                '</div></div>' +
+                '<div class="contact-item-actions">' +
+                '<a href="mailto:' + (e.address || '') + '" class="admin-btn admin-btn-save" style="text-decoration:none;">Email</a>' +
+                '<button class="admin-btn admin-btn-delete" onclick="deleteEmail(' + i + ')">Delete</button>' +
+                '</div></div>';
+        }).join('') + '</div>';
+    }
+
+    $('#add-phone-btn').addEventListener('click', function () {
+        var num = $('#new-phone').value.trim();
+        var label = $('#new-phone-label').value.trim() || 'Phone';
+        if (!num) { showToast('Phone number is required'); return; }
+        if (!/^[+]?[0-9\s\-().]{7,}$/.test(num)) {
+            showToast('Invalid phone number');
+            $('#new-phone').classList.add('input-error');
+            setTimeout(function () { $('#new-phone').classList.remove('input-error'); }, 2000);
+            return;
+        }
+        contacts.phones.push({ number: num, label: label });
+        save('contacts', contacts);
+        renderPhoneList();
+        renderContactStats();
+        $('#new-phone').value = '';
+        $('#new-phone-label').value = '';
+        showToast('Phone number added!');
+    });
+
+    $('#add-email-btn').addEventListener('click', function () {
+        var addr = $('#new-email').value.trim();
+        var label = $('#new-email-label').value.trim() || 'Email';
+        if (!addr) { showToast('Email address is required'); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) {
+            showToast('Invalid email address');
+            $('#new-email').classList.add('input-error');
+            setTimeout(function () { $('#new-email').classList.remove('input-error'); }, 2000);
+            return;
+        }
+        contacts.emails.push({ address: addr, label: label });
+        save('contacts', contacts);
+        renderEmailList();
+        renderContactStats();
+        $('#new-email').value = '';
+        $('#new-email-label').value = '';
+        showToast('Email address added!');
+    });
+
+    window.deletePhone = function (idx) {
+        if (confirm('Delete this phone number?')) {
+            contacts.phones.splice(idx, 1);
+            save('contacts', contacts);
+            renderPhoneList();
+            renderContactStats();
+            showToast('Phone number deleted');
+        }
+    };
+
+    window.deleteEmail = function (idx) {
+        if (confirm('Delete this email address?')) {
+            contacts.emails.splice(idx, 1);
+            save('contacts', contacts);
+            renderEmailList();
+            renderContactStats();
+            showToast('Email address deleted');
         }
     };
 

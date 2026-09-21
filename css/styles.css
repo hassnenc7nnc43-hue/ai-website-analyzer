@@ -642,7 +642,81 @@ input, textarea, select { font-family: inherit; font-size: 1rem; }
 .contact-card a { color: var(--primary); font-weight: 500; }
 .contact-card a:hover { text-decoration: underline; }
 
-/* Footer */
+/* Contact Info - Admin */
+.contact-list { display: flex; flex-direction: column; gap: 10px; }
+.contact-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; background: #f8f9fa; border-radius: var(--radius);
+    border: 1px solid var(--gray-200); flex-wrap: wrap; gap: 10px;
+}
+.contact-item-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.contact-item-icon { font-size: 1.3rem; }
+.contact-item-details { display: flex; flex-direction: column; }
+.contact-item-value { font-weight: 600; color: var(--gray-800); font-size: 0.95rem; }
+.contact-item-label { font-size: 0.8rem; color: var(--gray-500); }
+.contact-item-actions { display: flex; gap: 8px; }
+.contact-empty { text-align: center; color: var(--gray-500); padding: 30px; font-size: 0.9rem; }
+.contact-input-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.contact-input-row input {
+    flex: 1; min-width: 200px; padding: 10px 14px; border: 2px solid var(--gray-200);
+    border-radius: var(--radius); font-family: inherit; font-size: 0.95rem; transition: var(--transition);
+}
+.contact-input-row input:focus { outline: none; border-color: var(--primary); }
+.contact-input-row input.input-error { border-color: var(--danger); }
+.contact-website-card {
+    background: var(--white); border-radius: var(--radius-lg); padding: 24px;
+    box-shadow: var(--shadow); border: 1px solid var(--gray-200);
+    display: flex; flex-direction: column; gap: 8px;
+}
+.contact-website-card .contact-icon-lg { font-size: 1.8rem; margin-bottom: 4px; }
+.contact-website-card h4 { font-size: 1rem; color: var(--gray-900); }
+.contact-website-card p { color: var(--gray-600); font-size: 0.95rem; }
+.contact-website-card .contact-link {
+    color: var(--primary); font-weight: 500; padding: 4px 0; display: inline-block;
+}
+.contact-website-card .contact-link:hover { text-decoration: underline; }
+.contact-website-card .contact-sub-label { font-size: 0.8rem; color: var(--gray-400); }
+.contact-link-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+    background: var(--primary); color: white; border-radius: var(--radius-sm);
+    font-size: 0.8rem; font-weight: 600; transition: var(--transition); margin-top: 4px;
+}
+.contact-link-btn:hover { background: var(--primary-dark); }
+
+/* Contact info rows - website display */
+.contact-info-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0;
+}
+.contact-info-row .contact-link {
+    color: var(--primary); font-weight: 500; font-size: 0.95rem;
+}
+.contact-info-row .contact-link:hover { text-decoration: underline; }
+.contact-info-row .contact-link-btn {
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
+    background: var(--primary); color: white; border-radius: var(--radius-sm);
+    font-size: 0.8rem; font-weight: 600; transition: var(--transition);
+}
+.contact-info-row .contact-link-btn:hover { background: var(--primary-dark); text-decoration: none; }
+.contact-info-row .contact-sub-label { font-size: 0.8rem; color: var(--gray-500); }
+
+/* Contact Info Section - Website */
+.contact-all { margin-top: 30px; padding: 24px; background: var(--gray-50); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); }
+.contact-all h3 { font-size: 1.2rem; color: var(--gray-900); margin-bottom: 16px; }
+.contact-all-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.contact-all-item {
+    display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--white);
+    border-radius: var(--radius); border: 1px solid var(--gray-200);
+}
+.contact-all-item .icon { font-size: 1.5rem; }
+.contact-all-item .details { flex: 1; }
+.contact-all-item .label { font-size: 0.8rem; color: var(--gray-500); }
+.contact-all-item .value { font-weight: 600; color: var(--gray-800); font-size: 0.95rem; }
+
+@media (max-width: 768px) {
+    .contact-item { flex-direction: column; align-items: flex-start; }
+    .contact-input-row { flex-direction: column; }
+    .contact-input-row input { min-width: auto; width: 100%; }
+}
 .footer {
     background: var(--gray-900);
     color: var(--gray-300);

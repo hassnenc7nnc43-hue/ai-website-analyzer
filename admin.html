@@ -264,6 +264,7 @@
                     <button class="admin-nav-item" data-section="reviews">⭐ Reviews</button>
                     <button class="admin-nav-item" data-section="hours">🕐 Business Hours</button>
                     <button class="admin-nav-item" data-section="inquiries">📨 Inquiries</button>
+                    <button class="admin-nav-item" data-section="contacts">📇 Contact Info</button>
                 </nav>
             </aside>
             <div class="admin-main">
@@ -316,6 +317,14 @@
                                 <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:8px;">
                                     <span style="color:#5f6368;">💬 WhatsApp</span>
                                     <span id="dash-whatsapp">-</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:8px;">
+                                    <span style="color:#5f6368;">📞 Phone Numbers</span>
+                                    <span id="dash-phones">0</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:8px;">
+                                    <span style="color:#5f6368;">✉️ Emails</span>
+                                    <span id="dash-emails">0</span>
                                 </div>
                             </div>
                         </div>
@@ -518,6 +527,28 @@
                                 </table>
                             </div>
                             <p id="no-inquiries" style="text-align:center;color:#80868b;padding:40px 0;display:none;">No inquiries yet.</p>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info Section -->
+                    <div class="admin-section" id="section-contacts">
+                        <div class="admin-card">
+                            <h3>📞 Phone Numbers</h3>
+                            <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+                                <input type="tel" id="new-phone" placeholder="Enter phone number (e.g. +1234567890)" style="flex:1;min-width:200px;padding:10px 14px;border:2px solid #e8eaed;border-radius:6px;">
+                                <input type="text" id="new-phone-label" placeholder="Label (e.g. Office)" style="flex:0 0 180px;padding:10px 14px;border:2px solid #e8eaed;border-radius:6px;">
+                                <button class="btn btn-primary" id="add-phone-btn">➕ Add Phone</button>
+                            </div>
+                            <div id="phone-list"></div>
+                        </div>
+                        <div class="admin-card">
+                            <h3>✉️ Email Addresses</h3>
+                            <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+                                <input type="email" id="new-email" placeholder="Enter email (e.g. info@business.com)" style="flex:1;min-width:200px;padding:10px 14px;border:2px solid #e8eaed;border-radius:6px;">
+                                <input type="text" id="new-email-label" placeholder="Label (e.g. Primary)" style="flex:0 0 180px;padding:10px 14px;border:2px solid #e8eaed;border-radius:6px;">
+                                <button class="btn btn-primary" id="add-email-btn">➕ Add Email</button>
+                            </div>
+                            <div id="email-list"></div>
                         </div>
                     </div>
                 </div>
