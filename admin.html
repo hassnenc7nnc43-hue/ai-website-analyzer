@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Business Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .admin-login {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            padding: 20px;
+        }
+        .login-box {
+            background: white;
+            border-radius: 16px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-box h2 { text-align: center; margin-bottom: 8px; color: #202124; }
+        .login-box .login-subtitle { text-align: center; color: #80868b; margin-bottom: 32px; font-size: 0.95rem; }
+        .login-box .form-group input { padding: 14px 18px; font-size: 1.05rem; }
+        .login-error { color: #ea4335; font-size: 0.85rem; margin-top: 8px; display: none; }
+        .admin-layout { display: flex; min-height: 100vh; }
+        .admin-sidebar {
+            width: 260px;
+            background: #202124;
+            color: #fff;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+        .admin-sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .admin-sidebar-header h3 { font-size: 1.1rem; font-weight: 700; }
+        .admin-nav { padding: 12px 0; }
+        .admin-nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 24px;
+            color: #bdc1c6;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border: none; background: none; width: 100%; text-align: left;
+        }
+        .admin-nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .admin-nav-item.active { background: rgba(26,115,232,0.2); color: #4a9eff; border-right: 3px solid #1a73e8; }
+        .admin-main { margin-left: 260px; flex: 1; background: #f8f9fa; min-height: 100vh; }
+        .admin-topbar {
+            background: #fff;
+            padding: 16px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            position: sticky; top: 0; z-index: 50;
+        }
+        .admin-topbar h2 { font-size: 1.3rem; color: #202124; }
+        .admin-logout {
+            padding: 8px 20px;
+            background: #ea4335;
+            color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .admin-logout:hover { background: #d33b28; }
+        .admin-content { padding: 32px; }
+        .admin-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        .admin-card h3 {
+            font-size: 1.1rem;
+            color: #202124;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f1f3f4;
+        }
+        .admin-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .admin-form-grid .form-group.full { grid-column: 1 / -1; }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .admin-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            color: #5f6368;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .admin-table td {
+            padding: 14px 16px;
+            border-top: 1px solid #f1f3f4;
+            font-size: 0.95rem;
+        }
+        .admin-table .actions { display: flex; gap: 8px; }
+        .admin-btn {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            color: white;
+        }
+        .admin-btn-edit { background: #1a73e8; }
+        .admin-btn-edit:hover { background: #1557b0; }
+        .admin-btn-delete { background: #ea4335; }
+        .admin-btn-delete:hover { background: #d33b28; }
+        .admin-btn-save { background: #34a853; }
+        .admin-btn-save:hover { background: #2d8f47; }
+        .admin-btn-cancel { background: #80868b; }
+        .admin-btn-cancel:hover { background: #5f6368; }
+        .admin-image-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .admin-image-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            background: #f1f3f4;
+        }
+        .admin-image-item img { width: 100%; height: 100%; object-fit: cover; }
+        .admin-image-item .img-actions {
+            position: absolute;
+            top: 8px; right: 8px;
+            display: none;
+            gap: 6px;
+        }
+        .admin-image-item:hover .img-actions { display: flex; }
+        .admin-upload-area {
+            border: 2px dashed #dadce0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+        .admin-upload-area:hover { border-color: #1a73e8; background: rgba(26,115,232,0.04); }
+        .admin-upload-area svg { color: #9aa0a6; margin-bottom: 12px; }
+        .admin-upload-area p { color: #80868b; font-size: 0.9rem; }
+        .admin-upload-area .hint { font-size: 0.8rem; color: #9aa0a6; margin-top: 4px; }
+        .admin-stars { display: flex; gap: 4px; }
+        .admin-stars .star { cursor: pointer; font-size: 1.5rem; color: #dadce0; transition: color 0.15s; }
+        .admin-stars .star.active { color: #fbbc04; }
+        .admin-meta { font-size: 0.85rem; color: #80868b; margin-top: 8px; }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #202124;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 3000;
+            transform: translateY(120%);
+            transition: transform 0.4s;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .toast.show { transform: translateY(0); }
+        .admin-sidebar-toggle { display: none; }
+        @media (max-width: 1024px) {
+            .admin-sidebar { transform: translateX(-100%); }
+            .admin-sidebar.open { transform: translateX(0); }
+            .admin-main { margin-left: 0; }
+            .admin-sidebar-toggle {
+                display: inline-flex;
+                padding: 8px 12px;
+                background: #1a73e8;
+                color: white;
+                border-radius: 6px;
+                font-size: 1.2rem;
+                cursor: pointer;
+            }
+            .admin-form-grid { grid-template-columns: 1fr; }
+            .admin-image-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .admin-content { padding: 20px; }
+            .admin-topbar { padding: 12px 20px; }
+            .admin-image-grid { grid-template-columns: 1fr; }
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-box h3 { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div id="admin-login" class="admin-login">
+        <div class="login-box">
+            <h2>🔐 Admin Login</h2>
+            <p class="login-subtitle">Enter your password to access the dashboard</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-password" style="display:block;font-weight:600;font-size:0.9rem;color:#5f6368;margin-bottom:6px;">Password</label>
+                    <input type="password" id="admin-password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">Login</button>
+                <p class="login-error" id="login-error">Invalid password. Try: admin</p>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-dashboard" style="display:none;">
+        <div class="admin-layout">
+            <aside class="admin-sidebar" id="admin-sidebar">
+                <div class="admin-sidebar-header">
+                    <span style="font-size:1.5rem;">⭐</span>
+                    <h3>Business Manager</h3>
+                </div>
+                <nav class="admin-nav">
+                    <button class="admin-nav-item active" data-section="dashboard">📊 Dashboard</button>
+                    <button class="admin-nav-item" data-section="settings">⚙️ Settings</button>
+                    <button class="admin-nav-item" data-section="services">🛠️ Services</button>
+                    <button class="admin-nav-item" data-section="gallery">🖼️ Gallery</button>
+                    <button class="admin-nav-item" data-section="reviews">⭐ Reviews</button>
+                    <button class="admin-nav-item" data-section="hours">🕐 Business Hours</button>
+                    <button class="admin-nav-item" data-section="inquiries">📨 Inquiries</button>
+                </nav>
+            </aside>
+            <div class="admin-main">
+                <div class="admin-topbar">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <button class="admin-sidebar-toggle" id="sidebar-toggle">☰</button>
+                        <h2 id="admin-page-title">Dashboard</h2>
+                    </div>
+                    <button class="admin-logout" id="admin-logout">Logout</button>
+                </div>
+                <div class="admin-content">
+                    <!-- Dashboard Section -->
+                    <div class="admin-section active" id="section-dashboard">
+                        <div class="admin-card">
+                            <h3>Quick Stats</h3>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;">
+                                <div style="text-align:center;padding:20px;background:#f8f9fa;border-radius:12px;">
+                                    <div style="font-size:2rem;font-weight:800;color:#1a73e8;" id="stat-services">0</div>
+                                    <div style="color:#80868b;font-size:0.9rem;">Services</div>
+                                </div>
+                                <div style="text-align:center;padding:20px;background:#f8f9fa;border-radius:12px;">
+                                    <div style="font-size:2rem;font-weight:800;color:#fbbc04;" id="stat-gallery">0</div>
+                                    <div style="color:#80868b;font-size:0.9rem;">Gallery Items</div>
+                                </div>
+                                <div style="text-align:center;padding:20px;background:#f8f9fa;border-radius:12px;">
+                                    <div style="font-size:2rem;font-weight:800;color:#34a853;" id="stat-reviews">0</div>
+                                    <div style="color:#80868b;font-size:0.9rem;">Reviews</div>
+                                </div>
+                                <div style="text-align:center;padding:20px;background:#f8f9fa;border-radius:12px;">
+                                    <div style="font-size:2rem;font-weight:800;color:#ea4335;" id="stat-inquiries">0</div>
+                                    <div style="color:#80868b;font-size:0.9rem;">Inquiries</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-card">
+                            <h3>Contact Information</h3>
+                            <div style="display:grid;gap:12px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:8px;">
+                                    <span style="color:#5f6368;">📞 Phone</span>
+                                    <span id="dash-phone">-</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:8px;">
+                                    <span style="color:#5f6368;">✉️ Email</span>
+                                    <span id="dash-email">-</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:8px;">
+                                    <span style="color:#5f6368;">📍 Address</span>
+                                    <span id="dash-address" style="max-width:300px;text-align:right;">-</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:8px;">
+                                    <span style="color:#5f6368;">💬 WhatsApp</span>
+                                    <span id="dash-whatsapp">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Section -->
+                    <div class="admin-section" id="section-settings">
+                        <div class="admin-card">
+                            <h3>Business Information</h3>
+                            <div class="admin-form-grid">
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Business Name</label>
+                                    <input type="text" id="admin-business-name" placeholder="Your business name">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Phone Number</label>
+                                    <input type="tel" id="admin-phone" placeholder="+1234567890">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">WhatsApp Number</label>
+                                    <input type="tel" id="admin-whatsapp" placeholder="+1234567890">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Email Address</label>
+                                    <input type="email" id="admin-email" placeholder="info@business.com">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Office Address</label>
+                                    <input type="text" id="admin-address" placeholder="123 Main St, City, Country">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Google Map Location (URL or embed)</label>
+                                    <input type="text" id="admin-map" placeholder="https://maps.google.com/...">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Hero Title</label>
+                                    <input type="text" id="admin-hero-title" placeholder="Professional Services You Can Trust">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">EmailJS Service ID (optional)</label>
+                                    <input type="text" id="admin-emailjs-service" placeholder="service_xxxxx">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">EmailJS Template ID (optional)</label>
+                                    <input type="text" id="admin-emailjs-template" placeholder="template_xxxxx">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">EmailJS Public Key (optional)</label>
+                                    <input type="text" id="admin-emailjs-key" placeholder="public_xxxxx">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Admin Email (for receiving form submissions)</label>
+                                    <input type="email" id="admin-form-email" placeholder="admin@business.com">
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <button class="btn btn-primary" id="save-settings-btn" style="padding:14px 40px;font-size:1rem;">💾 Save Settings</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Services Section -->
+                    <div class="admin-section" id="section-services">
+                        <div class="admin-card">
+                            <h3>Add / Edit Service</h3>
+                            <input type="hidden" id="edit-service-id" value="">
+                            <div class="admin-form-grid">
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Service Name</label>
+                                    <input type="text" id="admin-service-name" placeholder="Service name">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Price</label>
+                                    <input type="text" id="admin-service-price" placeholder="From $50">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Price Note</label>
+                                    <input type="text" id="admin-service-note" placeholder="e.g. per hour, per item">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Icon (emoji)</label>
+                                    <input type="text" id="admin-service-icon" placeholder="🔧">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Description</label>
+                                    <textarea id="admin-service-desc" rows="3" placeholder="Service description"></textarea>
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <button class="btn btn-primary" id="save-service-btn" style="padding:14px 40px;font-size:1rem;">💾 Save Service</button>
+                                    <button class="btn admin-btn-cancel" id="cancel-edit-service" style="padding:14px 30px;font-size:1rem;margin-left:8px;display:none;">Cancel Edit</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-card">
+                            <h3>All Services</h3>
+                            <div style="overflow-x:auto;">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr><th>#</th><th>Name</th><th>Price</th><th>Actions</th></tr>
+                                    </thead>
+                                    <tbody id="services-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gallery Section -->
+                    <div class="admin-section" id="section-gallery">
+                        <div class="admin-card">
+                            <h3>Upload Images</h3>
+                            <div class="admin-upload-area" id="gallery-upload-area">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                <p>Click to upload or drag & drop</p>
+                                <p class="hint">SVG, PNG, JPG, GIF (Max 5MB)</p>
+                                <input type="file" id="gallery-file-input" accept="image/*" style="display:none;">
+                            </div>
+                            <div style="margin-top:16px;">
+                                <label style="font-weight:600;color:#5f6368;display:block;margin-bottom:8px;">Image Category</label>
+                                <select id="gallery-category" style="width:100%;padding:10px 14px;border:2px solid #e8eaed;border-radius:6px;">
+                                    <option value="service">Service Photos</option>
+                                    <option value="before-after">Before & After</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="admin-card">
+                            <h3>All Gallery Images</h3>
+                            <div class="admin-image-grid" id="gallery-admin-grid"></div>
+                        </div>
+                    </div>
+
+                    <!-- Reviews Section -->
+                    <div class="admin-section" id="section-reviews">
+                        <div class="admin-card">
+                            <h3>Add / Edit Review</h3>
+                            <input type="hidden" id="edit-review-id" value="">
+                            <div class="admin-form-grid">
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Customer Name</label>
+                                    <input type="text" id="admin-review-name" placeholder="Customer name">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Rating</label>
+                                    <div class="admin-stars" id="admin-stars">
+                                        <span class="star" data-rating="1">★</span>
+                                        <span class="star" data-rating="2">★</span>
+                                        <span class="star" data-rating="3">★</span>
+                                        <span class="star" data-rating="4">★</span>
+                                        <span class="star" data-rating="5">★</span>
+                                    </div>
+                                    <input type="hidden" id="admin-review-rating" value="5">
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Review Text</label>
+                                    <textarea id="admin-review-text" rows="3" placeholder="Customer review..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Upload Customer Image (optional)</label>
+                                    <input type="file" id="admin-review-image" accept="image/*">
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <button class="btn btn-primary" id="save-review-btn" style="padding:14px 40px;font-size:1rem;">💾 Save Review</button>
+                                    <button class="btn admin-btn-cancel" id="cancel-edit-review" style="padding:14px 30px;font-size:1rem;margin-left:8px;display:none;">Cancel Edit</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-card">
+                            <h3>All Reviews</h3>
+                            <div style="overflow-x:auto;">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr><th>#</th><th>Customer</th><th>Rating</th><th>Actions</th></tr>
+                                    </thead>
+                                    <tbody id="reviews-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Hours Section -->
+                    <div class="admin-section" id="section-hours">
+                        <div class="admin-card">
+                            <h3>Business Hours</h3>
+                            <div class="admin-form-grid" id="hours-grid"></div>
+                            <div style="margin-top:20px;">
+                                <button class="btn btn-primary" id="save-hours-btn" style="padding:14px 40px;font-size:1rem;">💾 Save Hours</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inquiries Section -->
+                    <div class="admin-section" id="section-inquiries">
+                        <div class="admin-card">
+                            <h3>Customer Inquiries</h3>
+                            <div style="overflow-x:auto;">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr><th>#</th><th>Name</th><th>Email</th><th>Subject</th><th>Date</th><th>Actions</th></tr>
+                                    </thead>
+                                    <tbody id="inquiries-table-body"></tbody>
+                                </table>
+                            </div>
+                            <p id="no-inquiries" style="text-align:center;color:#80868b;padding:40px 0;display:none;">No inquiries yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-view-image">
+        <div class="modal-box" style="max-width:700px;">
+            <h3>Image Preview</h3>
+            <img id="modal-img" src="" alt="" style="width:100%;border-radius:8px;margin-bottom:16px;">
+            <p id="modal-img-name" style="color:#80868b;font-size:0.9rem;"></p>
+            <div style="display:flex;gap:8px;margin-top:16px;">
+                <a href="#" id="modal-img-download" class="btn btn-primary btn-small" download>Download</a>
+                <button class="btn admin-btn-delete btn-small" id="modal-img-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="admin-toast"></div>
+    <script src="js/admin.js"></script>
+</body>
+</html>
