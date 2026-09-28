@@ -66,22 +66,38 @@
             position: sticky; top: 0; z-index: 50;
         }
         .admin-topbar h2 { font-size: 1.3rem; color: #202124; }
-        .admin-logout {
-            padding: 8px 20px;
-            background: #ea4335;
-            color: white;
-            border-radius: 6px;
+        .admin-topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .admin-logout, .admin-reset {
+            padding: 9px 18px;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 0.9rem;
             transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .admin-logout {
+            background: #ea4335;
+            color: white;
         }
         .admin-logout:hover { background: #d33b28; }
+        .admin-reset {
+            background: #fff7e6;
+            color: #b26a00;
+            border: 1px solid #f5d488;
+        }
+        .admin-reset:hover { background: #fff1ce; }
         .admin-content { padding: 32px; }
         .admin-card {
             background: #fff;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 28px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(60,64,67,0.04);
+            border: 1px solid #eef1f4;
             margin-bottom: 24px;
         }
         .admin-card h3 {
@@ -95,6 +111,35 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
+        }
+        .admin-form-grid .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #5f6368;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            background: #fff;
+            border: 1.5px solid #e7eaee;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            color: #202124;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26,115,232,0.08);
         }
         .admin-form-grid .form-group.full { grid-column: 1 / -1; }
         .admin-section { display: none; }
@@ -265,6 +310,7 @@
                     <button class="admin-nav-item" data-section="hours">🕐 Business Hours</button>
                     <button class="admin-nav-item" data-section="inquiries">📨 Inquiries</button>
                     <button class="admin-nav-item" data-section="contacts">📇 Contact Info</button>
+                    <button class="admin-nav-item" data-section="products">📦 Products</button>
                 </nav>
             </aside>
             <div class="admin-main">
@@ -273,7 +319,10 @@
                         <button class="admin-sidebar-toggle" id="sidebar-toggle">☰</button>
                         <h2 id="admin-page-title">Dashboard</h2>
                     </div>
-                    <button class="admin-logout" id="admin-logout">Logout</button>
+                    <div class="admin-topbar-actions">
+                        <button class="admin-reset" id="reset-default-btn" type="button">Reset to Default</button>
+                        <button class="admin-logout" id="admin-logout" type="button">Logout</button>
+                    </div>
                 </div>
                 <div class="admin-content">
                     <!-- Dashboard Section -->
@@ -549,6 +598,51 @@
                                 <button class="btn btn-primary" id="add-email-btn">➕ Add Email</button>
                             </div>
                             <div id="email-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Products Section -->
+                    <div class="admin-section" id="section-products">
+                        <div class="admin-card">
+                            <h3>➕ Add / Edit Product</h3>
+                            <input type="hidden" id="edit-product-id" value="">
+                            <div class="admin-form-grid">
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Product Name</label>
+                                    <input type="text" id="admin-product-name" placeholder="Product name">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Category</label>
+                                    <input type="text" id="admin-product-category" placeholder="e.g. Plumbing">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Price</label>
+                                    <input type="number" id="admin-product-price" placeholder="49" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Icon (emoji)</label>
+                                    <input type="text" id="admin-product-icon" placeholder="📦">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Availability</label>
+                                    <select id="admin-product-availability">
+                                        <option value="available">✅ Available</option>
+                                        <option value="out">❌ Out of Stock</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full">
+                                    <label style="font-weight:600;font-size:0.9rem;color:#5f6368;display:block;margin-bottom:6px;">Description</label>
+                                    <textarea id="admin-product-desc" rows="3" placeholder="Product description"></textarea>
+                                </div>
+                                <div class="form-group" style="grid-column:1/-1;">
+                                    <button class="btn btn-primary" id="save-product-btn" style="padding:14px 40px;font-size:1rem;">💾 Add Product</button>
+                                    <button class="btn admin-btn-cancel" id="cancel-edit-product" style="padding:14px 30px;font-size:1rem;margin-left:8px;display:none;">Cancel Edit</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="admin-card">
+                            <h3>All Products</h3>
+                            <div class="admin-image-grid" id="admin-products-grid"></div>
                         </div>
                     </div>
                 </div>

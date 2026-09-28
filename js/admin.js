@@ -32,6 +32,32 @@
     let isLoggedIn = sessionStorage.getItem('admin_logged') === '1';
     let currentRating = 5;
 
+    const DEFAULT_PRODUCTS = (function () {
+        var categories = ['Plumbing', 'Electrical', 'HVAC', 'Cleaning', 'Landscaping', 'Painting', 'Roofing', 'Pest Control', 'Handyman', 'Moving', 'Carpentry', 'Tiling'];
+        var adjectives = ['Professional', 'Premium', 'Express', 'Reliable', 'Expert', 'Quick', 'Advanced', 'Complete', 'Smart', 'Super'];
+        var nouns = ['Repair', 'Installation', 'Maintenance', 'Service', 'Solution', 'Support', 'Care', 'Treatment', 'Cleanup', 'Upgrade', 'Overhaul', 'Check'];
+        var icons = ['🔧', '⚡', '❄️', '🧹', '🌿', '🎨', '🏠', '🐜', '🔨', '📦', '🪵', '🧱'];
+        var prods = [];
+        var id = 1;
+        for (var c = 0; c < categories.length; c++) {
+            for (var i = 0; i < 9; i++) {
+                var adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                var noun = nouns[Math.floor(Math.random() * nouns.length)];
+                var icon = icons[Math.floor(Math.random() * icons.length)];
+                var price = 49 + Math.floor(Math.random() * 450) * 5;
+                prods.push({
+                    id: id++, name: adj + ' ' + categories[c] + ' ' + noun,
+                    category: categories[c], price: '$' + price, priceNum: price,
+                    description: 'Professional ' + categories[c].toLowerCase() + ' service with guaranteed quality. Fast, reliable, and affordable.',
+                    icon: icon, availability: Math.random() > 0.15 ? 'available' : 'out',
+                    rating: (3.5 + Math.random() * 1.5).toFixed(1),
+                    features: ['Fast Response', 'Certified Team', 'Warranty Included', '24/7 Support', 'Free Estimate'][Math.floor(Math.random() * 5)]
+                });
+            }
+        }
+        return prods;
+    })();
+
     function $(s) { return document.querySelector(s); }
     function $$(s) { return document.querySelectorAll(s); }
 
@@ -40,6 +66,44 @@
 
     function showLogin() { $('#admin-login').style.display = ''; $('#admin-dashboard').style.display = 'none'; }
     function showDashboard() { $('#admin-login').style.display = 'none'; $('#admin-dashboard').style.display = ''; }
+
+    function resetAllDefaults() {
+        if (!window.confirm('Reset all saved settings and content back to the default values? This cannot be undone.')) {
+            return;
+        }
+
+        const keys = ['settings', 'services', 'gallery', 'reviews', 'hours', 'inquiries', 'contacts', 'bookings', 'products'];
+        keys.forEach(function (key) {
+            var def = null;
+            if (key === 'settings') def = DEFAULT_SETTINGS;
+            else if (key === 'services') def = DEFAULT_SERVICES;
+            else if (key === 'gallery') def = [];
+            else if (key === 'reviews') def = [];
+            else if (key === 'hours') def = DEFAULT_HOURS;
+            else if (key === 'inquiries') def = [];
+            else if (key === 'contacts') def = { phones: [], emails: [] };
+            else if (key === 'bookings') def = [];
+            else if (key === 'products') def = DEFAULT_PRODUCTS;
+            save(key, def);
+        });
+
+        settings = load('settings', DEFAULT_SETTINGS);
+        services = load('services', DEFAULT_SERVICES);
+        gallery = load('gallery', []);
+        reviews = load('reviews', []);
+        hours = load('hours', DEFAULT_HOURS);
+        inquiries = load('inquiries', []);
+        contacts = load('contacts', { phones: [], emails: [] });
+        products = load('products', DEFAULT_PRODUCTS);
+
+        refreshAll();
+        showToast('Default settings restored!');
+        setTimeout(function () {
+            window.location.reload();
+        }, 250);
+    }
+
+    $('#reset-default-btn').addEventListener('click', resetAllDefaults);
 
     $('#login-form').addEventListener('submit', function (e) {
         e.preventDefault();
@@ -75,6 +139,9 @@
 
     $('#sidebar-toggle').addEventListener('click', function () { $('#admin-sidebar').classList.toggle('open'); });
 
+    let products = load('products', DEFAULT_PRODUCTS);
+    let currentProductCat = 'all';
+
     function refreshAll() {
         populateSettings();
         renderServicesTable();
@@ -83,6 +150,7 @@
         renderHours();
         renderInquiries();
         renderContacts();
+        renderAdminProducts();
         updateStats();
     }
 
@@ -518,6 +586,114 @@
             showToast('Email address deleted');
         }
     };
+
+    // ========== Product Management ==========
+    let editProductId = null;
+
+    function renderAdminProducts() {
+        var grid = $('#admin-products-grid');
+        if (!grid) return;
+        if (products.length === 0) {
+            grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#80868b;padding:30px;">No products added yet.</p>';
+            return;
+        }
+        grid.innerHTML = products.map(function (p, i) {
+            return '<div class="admin-image-item">' +
+                '<div style="padding:16px;height:100%;display:flex;flex-direction:column;justify-content:space-between;">' +
+                '<div>' +
+                '<div style="font-size:2rem;margin-bottom:8px;">' + (p.icon || '📦') + '</div>' +
+                '<h4 style="font-size:0.9rem;color:#202124;margin-bottom:4px;">' + p.name + '</h4>' +
+                '<p style="font-size:0.8rem;color:#80868b;">' + p.category + ' | ' + p.price + '</p>' +
+                '</div>' +
+                '<div class="img-actions">' +
+                '<button class="admin-btn admin-btn-edit" onclick="editProduct(' + p.id + ')">Edit</button>' +
+                '<button class="admin-btn admin-btn-delete" onclick="deleteProduct(' + i + ')">✕</button>' +
+                '</div></div></div>';
+        }).join('');
+    }
+
+    function populateProductForm() {
+        var nameEl = $('#admin-product-name');
+        var catEl = $('#admin-product-category');
+        var priceEl = $('#admin-product-price');
+        var descEl = $('#admin-product-desc');
+        var availEl = $('#admin-product-availability');
+        var iconEl = $('#admin-product-icon');
+        if (editProductId) {
+            var prod = products.find(function (p) { return p.id === editProductId; });
+            if (prod) {
+                nameEl.value = prod.name;
+                catEl.value = prod.category;
+                priceEl.value = prod.priceNum || '';
+                descEl.value = prod.description;
+                availEl.value = prod.availability;
+                iconEl.value = prod.icon;
+                $('#save-product-btn').textContent = '💾 Update Product';
+                $('#cancel-edit-product').style.display = '';
+            }
+        } else {
+            nameEl.value = '';
+            catEl.value = '';
+            priceEl.value = '';
+            descEl.value = '';
+            availEl.value = 'available';
+            iconEl.value = '📦';
+            $('#save-product-btn').textContent = '💾 Add Product';
+            $('#cancel-edit-product').style.display = 'none';
+        }
+    }
+
+    $('#save-product-btn').addEventListener('click', function () {
+        var name = $('#admin-product-name').value.trim();
+        var category = $('#admin-product-category').value.trim();
+        var price = parseFloat($('#admin-product-price').value) || 0;
+        var desc = $('#admin-product-desc').value.trim();
+        var availability = $('#admin-product-availability').value;
+        var icon = $('#admin-product-icon').value.trim() || '📦';
+        if (!name || !category || price <= 0) { showToast('Name, Category and Price required'); return; }
+
+        if (editProductId) {
+            var prod = products.find(function (p) { return p.id === editProductId; });
+            if (prod) {
+                prod.name = name; prod.category = category; prod.price = '$' + price;
+                prod.priceNum = price; prod.description = desc; prod.availability = availability; prod.icon = icon;
+                showToast('Product updated!');
+            }
+        } else {
+            products.push({
+                id: Date.now(), name: name, category: category, price: '$' + price, priceNum: price,
+                description: desc, icon: icon, availability: availability,
+                rating: '5.0', features: 'Fast Response', description: desc
+            });
+            showToast('Product added!');
+        }
+        save('products', products);
+        renderAdminProducts();
+        updateStats();
+        populateProductForm();
+    });
+
+    $('#cancel-edit-product').addEventListener('click', function () {
+        editProductId = null;
+        populateProductForm();
+    });
+
+    window.editProduct = function (id) {
+        editProductId = id;
+        populateProductForm();
+    };
+
+    window.deleteProduct = function (idx) {
+        if (confirm('Delete this product?')) {
+            products.splice(idx, 1);
+            save('products', products);
+            renderAdminProducts();
+            updateStats();
+            if (editProductId === products[Math.min(idx, products.length - 1)] && products.length < editProductId) editProductId = null;
+            showToast('Product deleted');
+        }
+    };
+    // ========== END Product Management ==========
 
     function showToast(msg) {
         var t = $('#admin-toast');

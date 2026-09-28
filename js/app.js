@@ -42,6 +42,36 @@
         { day: 'Sunday', hours: 'Closed' }
     ];
 
+    const DEFAULT_PRODUCTS = (function () {
+        var categories = ['Plumbing', 'Electrical', 'HVAC', 'Cleaning', 'Landscaping', 'Painting', 'Roofing', 'Pest Control', 'Handyman', 'Moving', 'Carpentry', 'Tiling'];
+        var adjectives = ['Professional', 'Premium', 'Express', 'Reliable', 'Expert', 'Quick', 'Advanced', 'Complete', 'Smart', 'Super'];
+        var nouns = ['Repair', 'Installation', 'Maintenance', 'Service', 'Solution', 'Support', 'Care', 'Treatment', 'Cleanup', 'Upgrade', 'Overhaul', 'Check'];
+        var icons = ['🔧', '⚡', '❄️', '🧹', '🌿', '🎨', '🏠', '🐜', '🔨', '📦', '🪵', '🧱'];
+        var prods = [];
+        var id = 1;
+        for (var c = 0; c < categories.length; c++) {
+            for (var i = 0; i < 9; i++) {
+                var adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                var noun = nouns[Math.floor(Math.random() * nouns.length)];
+                var icon = icons[Math.floor(Math.random() * icons.length)];
+                var price = 49 + Math.floor(Math.random() * 450) * 5;
+                prods.push({
+                    id: id++,
+                    name: adj + ' ' + categories[c] + ' ' + noun,
+                    category: categories[c],
+                    price: '$' + price,
+                    priceNum: price,
+                    description: 'Professional ' + categories[c].toLowerCase() + ' service with guaranteed quality. Fast, reliable, and affordable.',
+                    icon: icon,
+                    availability: Math.random() > 0.15 ? 'available' : 'out',
+                    rating: (3.5 + Math.random() * 1.5).toFixed(1),
+                    features: ['Fast Response', 'Certified Team', 'Warranty Included', '24/7 Support', 'Free Estimate'][Math.floor(Math.random() * 5)]
+                });
+            }
+        }
+        return prods;
+    })();
+
     function getDefault(key) {
         const map = { settings: DEFAULT_SETTINGS, services: DEFAULT_SERVICES, gallery: DEFAULT_GALLERY, reviews: DEFAULT_REVIEWS, hours: DEFAULT_HOURS };
         return map[key] || null;
@@ -72,47 +102,75 @@
             return c ? JSON.parse(c) : { phones: [], emails: [] };
         } catch (e) { return { phones: [], emails: [] }; }
     })();
+    let products = (function () {
+        try {
+            var p = localStorage.getItem('biz_products');
+            return p ? JSON.parse(p) : null;
+        } catch (e) { return null; }
+    })();
+    if (!products || products.length === 0) products = DEFAULT_PRODUCTS;
+    let currentCategory = 'all';
+    let currentSearch = '';
     let currentRating = 5;
 
     function $(sel) { return document.querySelector(sel); }
     function $$(sel) { return document.querySelectorAll(sel); }
 
     function applySettings() {
-        $('#site-logo .logo-text').textContent = settings.businessName;
-        $('#footer-business-name').textContent = settings.businessName;
-        $('#footer-business-name-bottom').textContent = settings.businessName;
-        $('#business-name').textContent = settings.businessName;
-        $('#seo-title').textContent = settings.businessName + ' | Professional Services';
-        $('#seo-description').textContent = settings.heroSubtitle;
-        $('#hero-title').textContent = settings.heroTitle;
-        $('#hero-subtitle').textContent = settings.heroSubtitle;
-        $('#services-intro').textContent = settings.servicesIntro;
-        $('#stat-experience').textContent = settings.statExperience || '10+';
+        var logoText = $('#site-logo .logo-text');
+        if (logoText) logoText.textContent = settings.businessName;
 
-        $('#contact-address').textContent = settings.address;
-        $('#contact-phone').href = 'tel:' + settings.phone;
-        $('#contact-phone').textContent = settings.phone;
-        $('#contact-email').href = 'mailto:' + settings.email;
-        $('#contact-email').textContent = settings.email;
-        $('#contact-whatsapp').href = 'https://wa.me/' + settings.whatsapp.replace(/[^0-9]/g, '');
-        $('#contact-whatsapp').textContent = 'Chat: ' + settings.whatsapp;
-        $('#contact-map').href = settings.mapUrl;
+        var footerBusinessName = $('#footer-business-name');
+        var footerBusinessNameBottom = $('#footer-business-name-bottom');
+        var businessNameEl = $('#business-name');
+        if (footerBusinessName) footerBusinessName.textContent = settings.businessName;
+        if (footerBusinessNameBottom) footerBusinessNameBottom.textContent = settings.businessName;
+        if (businessNameEl) businessNameEl.textContent = settings.businessName;
 
-        $('#booking-phone').href = 'tel:' + settings.phone;
-        $('#booking-phone').textContent = settings.phone;
-        $('#booking-whatsapp').href = 'https://wa.me/' + settings.whatsapp.replace(/[^0-9]/g, '');
-        $('#booking-whatsapp').textContent = 'Chat on WhatsApp';
-        $('#booking-email').href = 'mailto:' + settings.email;
-        $('#booking-email').textContent = settings.email;
+        var seoTitle = $('#seo-title');
+        var seoDescription = $('#seo-description');
+        if (seoTitle) seoTitle.textContent = settings.businessName + ' | Professional Services';
+        if (seoDescription) seoDescription.textContent = settings.heroSubtitle;
 
-        $('#header-call-text').textContent = 'Call Now';
-        $('#header-call-btn').href = 'tel:' + settings.phone;
+        var heroTitle = $('#hero-title');
+        var heroSubtitle = $('#hero-subtitle');
+        var servicesIntro = $('#services-intro');
+        var statExperience = $('#stat-experience');
+        if (heroTitle) heroTitle.textContent = settings.heroTitle;
+        if (heroSubtitle) heroSubtitle.textContent = settings.heroSubtitle;
+        if (servicesIntro) servicesIntro.textContent = settings.servicesIntro;
+        if (statExperience) statExperience.textContent = settings.statExperience || '10+';
 
-        $('#footer-phone').href = 'tel:' + settings.phone;
-        $('#footer-phone').textContent = settings.phone;
-        $('#footer-email').href = 'mailto:' + settings.email;
-        $('#footer-email').textContent = settings.email;
-        $('#footer-address').textContent = settings.address;
+        var contactAddress = $('#contact-address');
+        if (contactAddress) contactAddress.textContent = settings.address;
+
+        var contactPhone = $('#contact-phone');
+        var contactEmail = $('#contact-email');
+        var contactWhatsapp = $('#contact-whatsapp');
+        var contactMap = $('#contact-map');
+        if (contactPhone) { contactPhone.href = 'tel:' + settings.phone; contactPhone.textContent = settings.phone; }
+        if (contactEmail) { contactEmail.href = 'mailto:' + settings.email; contactEmail.textContent = settings.email; }
+        if (contactWhatsapp) { contactWhatsapp.href = 'https://wa.me/' + settings.whatsapp.replace(/[^0-9]/g, ''); contactWhatsapp.textContent = 'Chat: ' + settings.whatsapp; }
+        if (contactMap) contactMap.href = settings.mapUrl;
+
+        var bookingPhone = $('#booking-phone');
+        var bookingWhatsapp = $('#booking-whatsapp');
+        var bookingEmail = $('#booking-email');
+        if (bookingPhone) { bookingPhone.href = 'tel:' + settings.phone; bookingPhone.textContent = settings.phone; }
+        if (bookingWhatsapp) { bookingWhatsapp.href = 'https://wa.me/' + settings.whatsapp.replace(/[^0-9]/g, ''); bookingWhatsapp.textContent = 'Chat on WhatsApp'; }
+        if (bookingEmail) { bookingEmail.href = 'mailto:' + settings.email; bookingEmail.textContent = settings.email; }
+
+        var headerCallText = $('#header-call-text');
+        var headerCallBtn = $('#header-call-btn');
+        if (headerCallText) headerCallText.textContent = 'Call Now';
+        if (headerCallBtn) headerCallBtn.href = 'tel:' + settings.phone;
+
+        var footerPhone = $('#footer-phone');
+        var footerEmail = $('#footer-email');
+        var footerAddress = $('#footer-address');
+        if (footerPhone) { footerPhone.href = 'tel:' + settings.phone; footerPhone.textContent = settings.phone; }
+        if (footerEmail) { footerEmail.href = 'mailto:' + settings.email; footerEmail.textContent = settings.email; }
+        if (footerAddress) footerAddress.textContent = settings.address;
 
         renderServices();
         renderBookingServices();
@@ -121,11 +179,16 @@
         renderFooterHours();
         renderInquiries();
 
-        $('#header-call-btn').addEventListener('click', function () { window.location.href = 'tel:' + settings.phone; });
+        if (headerCallBtn) {
+            headerCallBtn.addEventListener('click', function () { window.location.href = 'tel:' + settings.phone; });
+        }
 
-        $('#download-rate').addEventListener('click', function (e) { e.preventDefault(); downloadRateList(); });
-        $('#download-invoice').addEventListener('click', function (e) { e.preventDefault(); downloadInvoice(); });
-        $('#download-brochure').addEventListener('click', function (e) { e.preventDefault(); downloadBrochure(); });
+        var downloadRate = $('#download-rate');
+        var downloadInvoice = $('#download-invoice');
+        var downloadBrochure = $('#download-brochure');
+        if (downloadRate) downloadRate.addEventListener('click', function (e) { e.preventDefault(); downloadRateList(); });
+        if (downloadInvoice) downloadInvoice.addEventListener('click', function (e) { e.preventDefault(); downloadInvoice(); });
+        if (downloadBrochure) downloadBrochure.addEventListener('click', function (e) { e.preventDefault(); downloadBrochure(); });
     }
 
     function renderServices() {
@@ -359,6 +422,119 @@
             }
         }
     }
+
+    // ========== PRODUCTS ==========
+    function saveProducts() {
+        try { localStorage.setItem('biz_products', JSON.stringify(products)); } catch (e) { /* noop */ }
+    }
+
+    function renderProductCategories() {
+        var catBar = $('#products-filter-bar');
+        var searchCats = $('#search-categories');
+        if (!catBar) return;
+        var cats = ['all'];
+        var seen = {};
+        products.forEach(function (p) {
+            if (!seen[p.category]) {
+                seen[p.category] = true;
+                cats.push(p.category);
+            }
+        });
+        catBar.innerHTML = cats.map(function (c) {
+            return '<button class="filter-btn' + (c === currentCategory ? ' active' : '') + '" data-filter="' + c + '">' + c + '</button>';
+        }).join('');
+        if (searchCats) {
+            searchCats.innerHTML = cats.map(function (c) {
+                return '<button class="cat-btn' + (c === currentCategory ? ' active' : '') + '" data-cat="' + c + '">' + c + '</button>';
+            }).join('');
+        }
+        $$('.filter-btn[data-filter], .cat-btn[data-cat]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                currentCategory = btn.dataset.filter || btn.dataset.cat;
+                $$('.filter-btn[data-filter]').forEach(function (b) { b.classList.remove('active'); });
+                $$('.cat-btn[data-cat]').forEach(function (b) { b.classList.remove('active'); });
+                var filterBtn = document.querySelector('.filter-btn[data-filter="' + currentCategory + '"]');
+                var catBtn = document.querySelector('.cat-btn[data-cat="' + currentCategory + '"]');
+                if (filterBtn) filterBtn.classList.add('active');
+                if (catBtn) catBtn.classList.add('active');
+                renderProducts();
+            });
+        });
+    }
+
+    function filterProducts() {
+        var searchEl = $('#product-search');
+        var search = searchEl ? searchEl.value.toLowerCase().trim() : '';
+        currentSearch = search;
+        return products.filter(function (p) {
+            var matchCat = currentCategory === 'all' || p.category === currentCategory;
+            var matchSearch = !search ||
+                p.name.toLowerCase().indexOf(search) >= 0 ||
+                p.category.toLowerCase().indexOf(search) >= 0 ||
+                p.description.toLowerCase().indexOf(search) >= 0 ||
+                p.features.toLowerCase().indexOf(search) >= 0;
+            return matchCat && matchSearch;
+        });
+    }
+
+    function renderProducts() {
+        var grid = $('#products-grid');
+        var empty = $('#products-empty');
+        var countEl = $('#search-count');
+        if (!grid) return;
+        var filtered = filterProducts();
+
+        if (countEl) {
+            countEl.textContent = filtered.length + ' product' + (filtered.length !== 1 ? 's' : '') + ' found';
+        }
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '';
+            if (empty) empty.style.display = 'block';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+
+        grid.innerHTML = filtered.map(function (p) {
+            return '<div class="product-card" data-id="' + p.id + '">' +
+                '<div class="product-icon">' + (p.icon || '📦') + '</div>' +
+                '<div class="product-category">' + p.category + '</div>' +
+                '<h3>' + p.name + '</h3>' +
+                '<p class="product-desc">' + p.description + '</p>' +
+                '<div class="product-footer">' +
+                '<span class="product-price">' + p.price + ' <small>' + (p.features || '') + '</small></span>' +
+                '<span class="product-badge ' + (p.availability || 'available') + '">' + (p.availability === 'available' ? '✅ Available' : '❌ Out') + '</span>' +
+                '</div>' +
+                '</div>';
+        }).join('');
+
+        $$('.product-card').forEach(function (card) {
+            card.addEventListener('click', function () {
+                var pid = parseInt(card.dataset.id);
+                var prod = products.find(function (p) { return p.id === pid; });
+                if (prod) showToast(prod.name + ' — ' + prod.price);
+            });
+        });
+    }
+
+    // Search event listener
+    var searchInput = $('#product-search');
+    if (searchInput) {
+        var searchTimeout;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(renderProducts, 200);
+        });
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                renderProducts();
+                var productsSection = document.getElementById('products');
+                if (productsSection) productsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    }
+
+    // ========== END PRODUCTS ==========
 
     var tbody = document.getElementById('inquiries-table-body');
     var noInq = document.getElementById('no-inquiries');
@@ -666,5 +842,7 @@
         $('#footer-year').textContent = new Date().getFullYear();
         applySettings();
         renderContactSection();
+        renderProductCategories();
+        renderProducts();
 
     })();

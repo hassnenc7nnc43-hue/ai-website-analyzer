@@ -74,6 +74,45 @@
             </div>
         </section>
 
+        <!-- Search Bar Section -->
+        <section class="search-section" id="search">
+            <div class="container">
+                <div class="search-wrapper">
+                    <h2>Find Products & Services</h2>
+                    <p>Search from our catalog of 100+ products and services</p>
+                    <div class="search-box">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                        <input type="text" id="product-search" placeholder="Search products, services, categories...">
+                        <div class="search-hint">Press Enter or type to search</div>
+                    </div>
+                    <div class="search-categories" id="search-categories">
+                        <button class="cat-btn active" data-cat="all">All</button>
+                    </div>
+                    <div class="search-results-count" id="search-count"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section class="section section-alt" id="products">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">Our Catalog</span>
+                    <h2>Products & Services</h2>
+                    <p>Browse our complete collection of professional offerings.</p>
+                </div>
+                <div class="products-filter-bar" id="products-filter-bar">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                </div>
+                <div class="products-grid" id="products-grid"></div>
+                <div class="products-empty" id="products-empty" style="display:none;">
+                    <span style="font-size:4rem;">🔍</span>
+                    <h3>No products found</h3>
+                    <p>Try a different search term or category.</p>
+                </div>
+            </div>
+        </section>
+
         <section class="section" id="services">
             <div class="container">
                 <div class="section-header">
